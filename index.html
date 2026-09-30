@@ -235,15 +235,20 @@
         ctx.strokeStyle = color;
         ctx.stroke();
       };
+      // 起始位置：蓝色
       drawMark(lastMove.fromR, lastMove.fromC, '#3498db');
-      drawMark(lastMove.toR, lastMove.toC, '#e74c3c');
+      // 目标位置：根据棋子颜色决定（红子红色，黑子蓝色）
+      const targetPiece = board[lastMove.toR][lastMove.toC];
+      const toColor = targetPiece && targetPiece.color === 'r' ? '#e74c3c' : '#3498db';
+      drawMark(lastMove.toR, lastMove.toC, toColor);
     }
 
     // 选中高亮
     if (selected) {
+      const selPiece = board[selected.r][selected.c];
       const x = MARGIN + selected.c * CELL;
       const y = MARGIN + selected.r * CELL;
-      ctx.strokeStyle = '#e74c3c';
+      ctx.strokeStyle = selPiece && selPiece.color === 'r' ? '#e74c3c' : '#3498db';
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(x, y, CELL / 2 - 2, 0, Math.PI * 2);
