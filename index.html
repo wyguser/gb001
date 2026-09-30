@@ -115,6 +115,7 @@
   let gameOver = false;
   let validMoves = [];
   let history = [];
+  let lastMove = null;
 
   const PIECE_NAMES = {
     r: { K: '帅', A: '仕', E: '相', H: '马', R: '车', C: '炮', P: '兵' },
@@ -199,6 +200,20 @@
     ctx.textBaseline = 'middle';
     ctx.fillText('楚 河', MARGIN + 2 * CELL, MARGIN + 4.5 * CELL);
     ctx.fillText('漢 界', MARGIN + 6 * CELL, MARGIN + 4.5 * CELL);
+
+    // 最后一步痕迹
+    if (lastMove) {
+      const drawMark = (r, c, color) => {
+        const x = MARGIN + c * CELL;
+        const y = MARGIN + r * CELL;
+        ctx.beginPath();
+        ctx.arc(x, y, CELL / 2 - 8, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      };
+      drawMark(lastMove.fromR, lastMove.fromC, 'rgba(52, 152, 219, 0.35)');
+      drawMark(lastMove.toR, lastMove.toC, 'rgba(231, 76, 60, 0.35)');
+    }
 
     // 有效移动标记
     validMoves.forEach(m => {
@@ -526,6 +541,8 @@
         board[r][c] = movingPiece;
         board[fromR][fromC] = null;
 
+        lastMove = { fromR, fromC, toR: r, toC: c };
+
         // 检查胜利
         if (captured && captured.type === 'K') {
           gameOver = true;
@@ -604,6 +621,12 @@
     gameOver = last.prevGameOver;
     selected = null;
     validMoves = [];
+    if (history.length > 0) {
+      const prev = history[history.length - 1];
+      lastMove = { fromR: prev.fromR, fromC: prev.fromC, toR: prev.toR, toC: prev.toC };
+    } else {
+      lastMove = null;
+    }
     messageEl.textContent = '';
     updateTurnIndicator();
     drawBoard();
@@ -616,6 +639,7 @@
     currentTurn = 'r';
     gameOver = false;
     history = [];
+    lastMove = null;
     messageEl.textContent = '';
     updateTurnIndicator();
     drawBoard();
