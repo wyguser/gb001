@@ -83,13 +83,14 @@
   <div class="info-bar">
     <div id="turnIndicator" class="turn-indicator turn-red">红方行棋</div>
     <div id="message" class="message"></div>
+    <button id="undoBtn">悔棋</button>
     <button id="restartBtn">重新开始</button>
   </div>
   <div class="board-container">
     <canvas id="board" width="540" height="600"></canvas>
   </div>
   <div class="rules">
-    点击棋子选中，再点击目标位置移动。红方先行，吃掉对方将/帅即获胜。
+    点击棋子选中，再点击目标位置移动。红方先行，吃掉对方将/帅即获胜。可使用"悔棋"按钮撤销上一步。
   </div>
 
 <script>
@@ -99,6 +100,7 @@
   const turnIndicator = document.getElementById('turnIndicator');
   const messageEl = document.getElementById('message');
   const restartBtn = document.getElementById('restartBtn');
+  const undoBtn = document.getElementById('undoBtn');
 
   const CELL = 60;
   const MARGIN = 30;
@@ -112,6 +114,7 @@
   let currentTurn = 'r';
   let gameOver = false;
   let validMoves = [];
+  let history = [];
 
   const PIECE_NAMES = {
     r: { K: '帅', A: '仕', E: '相', H: '马', R: '车', C: '炮', P: '兵' },
@@ -507,9 +510,21 @@
     if (selected) {
       const isMove = validMoves.some(m => m.r === r && m.c === c);
       if (isMove) {
+        const fromR = selected.r, fromC = selected.c;
         const captured = board[r][c];
-        board[r][c] = board[selected.r][selected.c];
-        board[selected.r][selected.c] = null;
+        const movingPiece = board[fromR][fromC];
+
+        history.push({
+          fromR: fromR, fromC: fromC,
+          toR: r, toC: c,
+          piece: movingPiece,
+          captured: captured,
+          prevTurn: currentTurn,
+          prevGameOver: gameOver
+        });
+
+        board[r][c] = movingPiece;
+        board[fromR][fromC] = null;
 
         // 检查胜利
         if (captured && captured.type === 'K') {
@@ -574,12 +589,33 @@
     }
   }
 
+  undoBtn.addEventListener('click', () => {
+    if (history.length === 0) {
+      messageEl.textContent = '没有可悔的棋';
+      setTimeout(() => {
+        if (!gameOver && !isInCheck(currentTurn)) messageEl.textContent = '';
+      }, 1500);
+      return;
+    }
+    const last = history.pop();
+    board[last.fromR][last.fromC] = last.piece;
+    board[last.toR][last.toC] = last.captured;
+    currentTurn = last.prevTurn;
+    gameOver = last.prevGameOver;
+    selected = null;
+    validMoves = [];
+    messageEl.textContent = '';
+    updateTurnIndicator();
+    drawBoard();
+  });
+
   restartBtn.addEventListener('click', () => {
     initBoard();
     selected = null;
     validMoves = [];
     currentTurn = 'r';
     gameOver = false;
+    history = [];
     messageEl.textContent = '';
     updateTurnIndicator();
     drawBoard();
