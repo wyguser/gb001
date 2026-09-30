@@ -201,20 +201,6 @@
     ctx.fillText('楚 河', MARGIN + 2 * CELL, MARGIN + 4.5 * CELL);
     ctx.fillText('漢 界', MARGIN + 6 * CELL, MARGIN + 4.5 * CELL);
 
-    // 最后一步痕迹
-    if (lastMove) {
-      const drawMark = (r, c, color) => {
-        const x = MARGIN + c * CELL;
-        const y = MARGIN + r * CELL;
-        ctx.beginPath();
-        ctx.arc(x, y, CELL / 2 - 8, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-      };
-      drawMark(lastMove.fromR, lastMove.fromC, 'rgba(52, 152, 219, 0.35)');
-      drawMark(lastMove.toR, lastMove.toC, 'rgba(231, 76, 60, 0.35)');
-    }
-
     // 有效移动标记
     validMoves.forEach(m => {
       const x = MARGIN + m.c * CELL;
@@ -232,6 +218,25 @@
           drawPiece(r, c, board[r][c]);
         }
       }
+    }
+
+    // 最后一步痕迹 (在棋子之上绘制，用圆环包围)
+    if (lastMove) {
+      const drawMark = (r, c, color) => {
+        const x = MARGIN + c * CELL;
+        const y = MARGIN + r * CELL;
+        ctx.beginPath();
+        ctx.arc(x, y, CELL / 2 - 1, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.2;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+      };
+      drawMark(lastMove.fromR, lastMove.fromC, '#3498db');
+      drawMark(lastMove.toR, lastMove.toC, '#e74c3c');
     }
 
     // 选中高亮
